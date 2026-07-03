@@ -42,60 +42,26 @@
               {% trans 'Download QR Code' %}
             </a>
         </div>
-        <div class="pt-2">
-          <span class="text-lg font-bold">{% trans 'Password' %}</span>
+        {% translate "Password" as password_trans %}
+        {% translate "Deletion" as deletion_trans %}
+        <div class="pt-1">
+          {% include 'includes/details_field.html' with field='password' field_value=shared_collection.password field_value_override='***' field_title=password_trans edit_url='edit_shared_collection' obj_id=shared_collection.id %}
         </div>
-        <div class="flex justify-between text-slate-600 dark:text-slate-400">
-            <div class="w-[86%] text-sm">
-                <span id="password">
-                    {% if shared_collection.password %}
-                    ***
-                    {% else %}
-                    {% trans 'not set' %}
-                    {% endif%}
-                </span>
-            </div>
-            <div class="pr-0 md:pr-4">
-                <a id="password-edit" class="cursor-pointer text-primary hover:text-secondary"
-                    hx-get="{% url 'edit_shared_collection' identifier=shared_collection.id field_name='password' %}"
-                    hx-target="#password"
-                    hx-swap="innerHTML" >
-                    {{ edit }}
-                </a>
-            </div>
-        </div>
-        <div class="pt-2">
-          <span class="text-lg font-bold">{% trans 'Deletion' %}</span>
-        </div>
-        <div class="flex justify-between text-slate-600 dark:text-slate-400">
-            <div class="w-[86%] text-sm">
-                <span id="deletion_date">
-                    {{ shared_collection.deletes_in_string }}
-                </span>
-            </div>
-            <div class="pr-0 md:pr-4">
-                <a id="deletion_date-edit" class="cursor-pointer text-primary hover:text-secondary"
-                    hx-get="{% url 'edit_shared_collection' identifier=shared_collection.id field_name='deletion_date' %}"
-                    hx-target="#deletion_date"
-                    hx-swap="innerHTML" >
-                    {{ edit }}
-                </a>
-            </div>
-        </div>
-        <div class="pt-2">
+        {% include 'includes/details_field.html' with field='deletion_date' field_value=shared_collection.deletes_in_string field_title=deletion_trans edit_url='edit_shared_collection' obj_id=shared_collection.id %}
+        <div class="pt-2 flex flex-row items-center gap-x-3">
             <span class="text-lg font-bold">Collection</span>
-        </div>
-        <div class="flex justify-between text-slate-600 dark:text-slate-400">
-            <div class="w-[86%] text-sm">
-                <span id="collection">
-                    {{ shared_collection.collection.name }}
-                </span>
-            </div>
             <div class="pr-0 md:pr-4">
                 <a id="collection-view" href="{% url 'collection_details' shared_collection.collection.id %}"
                     class="cursor-pointer text-primary hover:text-secondary">
                   {% trans 'Details' %}
                 </a>
+            </div>
+        </div>
+        <div class="text-slate-600 dark:text-slate-400">
+            <div class="w-full text-sm">
+                <span id="collection">
+                    {{ shared_collection.collection.name }}
+                </span>
             </div>
         </div>
         <div class="pt-2">

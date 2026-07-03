@@ -147,7 +147,7 @@ class SharedCollectionE2ETestCase(PdfDingE2ETestCase):
             expect(self.page.locator("#name")).to_contain_text("other name")
             self.page.locator("#password-edit").click()
             self.page.get_by_role("button", name="Submit").click()
-            expect(self.page.locator("#password")).to_contain_text("not set")
+            expect(self.page.locator("#password")).to_contain_text("No Password Available")
             self.page.locator("#deletion_date-edit").click()
             self.page.get_by_placeholder("e.g. 1d0h22m").click()
             self.page.get_by_placeholder("e.g. 1d0h22m").fill("0d0h5m")

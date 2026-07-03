@@ -45,28 +45,8 @@
           </span>
       </div>
   </div>
-  <div class="pt-2">
-    <span class="text-lg font-bold">{% trans 'Description' %}</span>
-  </div>
-  <div class="flex justify-between text-slate-600 dark:text-slate-400">
-      <div class="w-[86%] text-sm">
-          <span id="description">
-              {% if workspace.description %}
-              {{ workspace.description }}
-              {% else %}
-              {% trans 'no description available' %}
-              {% endif%}
-          </span>
-      </div>
-      <div class="pr-0 md:pr-4">
-          <a id="description-edit" class="cursor-pointer text-primary hover:text-secondary"
-              hx-get="{% url 'edit_workspace' identifier=workspace.id field_name='description' %}"
-              hx-target="#description"
-              hx-swap="innerHTML">
-            {{ edit }}
-          </a>
-      </div>
-  </div>
+  {% translate "Description" as description_trans %}
+  {% include 'includes/details_field.html' with field='description' field_value=workspace.description field_title=description_trans edit_url='edit_workspace' obj_id=workspace.id %}
   <div class="pt-2">
     <span class="text-lg font-bold">{% trans 'Date added' %}</span>
   </div>

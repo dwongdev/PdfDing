@@ -101,46 +101,15 @@
                 {% endif %}
             </a>
         </div>
-        <div class="pt-2">
-          <span class="text-lg font-bold">{% trans 'Collection' %}</span>
+        {% translate "Collection" as collection_trans %}
+        {% translate "Description" as description_trans %}
+        {% translate "File Directory" as file_directory_trans %}
+        <div class="pt-1">
+          {% include 'includes/details_field.html' with field='collection' field_value=pdf.collection field_title=collection_trans edit_url='edit_pdf' obj_id=pdf.id %}
         </div>
-        <div class="flex justify-between text-slate-600 dark:text-slate-400">
-            <div class="w-[86%] text-sm">
-                <span id="collection">
-                    {{ pdf.collection.name }}
-                </span>
-            </div>
-            <div class="pr-0 md:pr-4">
-                <a id="collection-edit" class="cursor-pointer text-primary hover:text-secondary"
-                    hx-get="{% url 'edit_pdf' identifier=pdf.id field_name='collection' %}"
-                    hx-target="#collection"
-                    hx-swap="innerHTML" >
-                    {{ edit }}
-                </a>
-            </div>
-        </div>
-        <div class="pt-4">
-          <span class="text-lg font-bold">{% trans 'Tags' %}</span>
-        </div>
-        <div class="flex justify-between text-slate-600 dark:text-slate-400">
-            <div class="w-[86%]">
-                {% if pdf.tags.all %}
-                <span id="tags">
-                    {% for tag in pdf.tags.all|dictsort:"name" %}
-                        <a class="rounded-sm hover:bg-slate-200 dark:hover:bg-slate-700 px-[2px] md:px-[4px]
-                                  border border-slate-200 dark:border-slate-700 mr-[2px] md:mr-[4px]"
-                            href="{% url 'pdf_overview_query' %}?search=%23{{ tag }}">
-                            <span class="text-primary">#</span>{{ tag }}
-                        </a>
-                    {% endfor %}
-                </span>
-                {% else %}
-                <span class="text-sm" id="tags">
-                  {% trans 'no tags available' %}
-                {% endif %}
-                </span>
-            </div>
-            <div class="pr-0 md:pr-4">
+        <div class="pt-2 flex flex-row items-center gap-x-3">
+            <span class="text-lg font-bold">{% trans 'Tags' %}</span>
+            <div>
                 <a id="tags-edit" class="cursor-pointer text-primary hover:text-secondary"
                     hx-get="{% url 'edit_pdf' identifier=pdf.id field_name='tags' %}"
                     hx-target="#tags"
@@ -149,45 +118,29 @@
                 </a>
             </div>
         </div>
-        <div class="pt-2">
-          <span class="text-lg font-bold">{% trans 'Description' %}</span>
-        </div>
         <div class="flex justify-between text-slate-600 dark:text-slate-400">
-            <div class="w-[86%] text-sm">
-                <div id="description" class="text-justify">
-                    {% if pdf.description %}
-                    {{ pdf.description }}
-                    {% else %}
-                    {% trans 'no description available' %}
-                    {% endif %}
-                </div>
-            </div>
-            <div class="pr-0 md:pr-4">
-                <a id="description-edit" class="cursor-pointer text-primary hover:text-secondary"
-                    hx-get="{% url 'edit_pdf' identifier=pdf.id field_name='description' %}"
-                    hx-target="#description"
-                    hx-swap="innerHTML" >
-                    {{ edit }}
-                </a>
-            </div>
-        </div>
-        <div class="pt-2">
-          <span class="text-lg font-bold">{% trans 'Notes' %}</span>
-        </div>
-        <div class="flex justify-between text-slate-600 dark:text-slate-400">
-            <div class="w-[86%]">
-                {% if pdf.notes %}
-                <div id="notes"
-                      class="markdown py-1 px-2 mr-2 md:mr-0! rounded-sm bg-slate-100 dark:bg-slate-700!">
-                    {{ pdf.notes_html }}
+            <div class="w-full">
+                {% if pdf.tags.all %}
+                <div id="tags">
+                    {% for tag in pdf.tags.all|dictsort:"name" %}
+                        <a class="rounded-sm hover:bg-slate-200 dark:hover:bg-slate-700 px-[2px] md:px-[4px]
+                                  border border-slate-200 dark:border-slate-700 mr-[2px] md:mr-[4px]"
+                            href="{% url 'pdf_overview_query' %}?search=%23{{ tag }}">
+                            <span class="text-primary">#</span>{{ tag }}
+                        </a>
+                    {% endfor %}
                 </div>
                 {% else %}
-                <span id="notes" class="text-sm">
-                  {% trans 'no notes available' %}
-                </span>
+                <span class="text-sm" id="tags">
+                  {% trans 'No Tags Available' %}
                 {% endif %}
+                </span>
             </div>
-            <div class="pr-0 md:pr-4">
+        </div>
+        {% include 'includes/details_field.html' with field='description' field_value=pdf.description field_title=description_trans edit_url='edit_pdf' obj_id=pdf.id %}
+        <div class="pt-2 flex flex-row items-center gap-x-3">
+            <span class="text-lg font-bold">{% trans 'Notes' %}</span>
+            <div>
                 <a id="notes-edit" class="cursor-pointer text-primary hover:text-secondary"
                     hx-get="{% url 'edit_pdf' identifier=pdf.id field_name='notes' %}"
                     hx-target="#notes"
@@ -196,29 +149,23 @@
                 </a>
             </div>
         </div>
-        {% if ALLOW_PDF_SUB_DIRECTORIES %}
-        <div class="pt-2">
-          <span class="text-lg font-bold">{% trans 'File directory' %}</span>
-        </div>
         <div class="flex justify-between text-slate-600 dark:text-slate-400">
-            <div class="w-[86%] text-sm">
-                <span id="file_directory">
-                    {% if pdf.file_directory %}
-                    {{ pdf.file_directory }}
-                    {% else %}
-                    {% trans 'File directory not set' %}
-                    {% endif %}
+            <div class="w-full">
+                {% if pdf.notes %}
+                <div id="notes">
+                    <div class="markdown py-1 px-2 mr-2 md:mr-0! rounded-sm bg-slate-100 dark:bg-slate-700!">
+                    {{ pdf.notes_html }}
+                    </div>
+                </div>
+                {% else %}
+                <span id="notes" class="text-sm">
+                  {% trans 'No Notes Available' %}
                 </span>
-            </div>
-            <div class="pr-0 md:pr-4">
-                <a id="file_directory-edit" class="cursor-pointer text-primary hover:text-secondary"
-                    hx-get="{% url 'edit_pdf' identifier=pdf.id field_name='file_directory' %}"
-                    hx-target="#file_directory"
-                    hx-swap="innerHTML" >
-                    {{ edit }}
-                </a>
+                {% endif %}
             </div>
         </div>
+        {% if ALLOW_PDF_SUB_DIRECTORIES %}
+        {% include 'includes/details_field.html' with field='file_directory' field_value=pdf.file_directory field_title=file_directory_trans edit_url='edit_pdf' obj_id=pdf.id %}
         {% endif %}
         <div class="pt-2">
           <span class="text-lg font-bold">{% trans 'Views' context 'number of pdf views' %}</span>

@@ -185,7 +185,7 @@ class SharedPdfE2ETestCase(PdfDingE2ETestCase):
             expect(self.page.locator("#name")).to_contain_text("other name")
             self.page.locator("#password-edit").click()
             self.page.get_by_role("button", name="Submit").click()
-            expect(self.page.locator("#password")).to_contain_text("not set")
+            expect(self.page.locator("#password")).to_contain_text("No Password Available")
             self.page.locator("#max_views-edit").click()
             self.page.locator("#id_max_views").click()
             self.page.locator("#id_max_views").fill("5")

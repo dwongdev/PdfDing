@@ -48,42 +48,14 @@
               {% trans 'Download QR Code' %}
             </a>
         </div>
-        <div class="pt-2">
-          <span class="text-lg font-bold">{% trans 'Password' %}</span>
+        {% translate "Password" as password_trans %}
+        {% translate "Deletion" as deletion_trans %}
+        <div class="pt-1">
+          {% include 'includes/details_field.html' with field='password' field_value=shared_pdf.password field_value_override='***' field_title=password_trans edit_url='edit_shared_pdf' obj_id=shared_pdf.id %}
         </div>
-        <div class="flex justify-between text-slate-600 dark:text-slate-400">
-            <div class="w-[86%] text-sm">
-                <span id="password">
-                    {% if shared_pdf.password %}
-                    ***
-                    {% else %}
-                    {% trans 'not set' %}
-                    {% endif%}
-                </span>
-            </div>
-            <div class="pr-0 md:pr-4">
-                <a id="password-edit" class="cursor-pointer text-primary hover:text-secondary"
-                    hx-get="{% url 'edit_shared_pdf' identifier=shared_pdf.id field_name='password' %}"
-                    hx-target="#password"
-                    hx-swap="innerHTML" >
-                    {{ edit }}
-                </a>
-            </div>
-        </div>
-        <div class="pt-2">
-          <span class="text-lg font-bold">{% trans 'Views' context 'number of views' %}</span>
-        </div>
-        <div class="flex justify-between text-slate-600 dark:text-slate-400">
-            <div class="w-[86%] text-sm">
-                <span id="max_views">
-                    {% if shared_pdf.max_views %}
-                    {{ shared_pdf.views }}/{{ shared_pdf.max_views }}
-                    {% else %}
-                    {{ shared_pdf.views }} | {% trans 'not set' %}
-                    {% endif%}
-                </span>
-            </div>
-            <div class="pr-0 md:pr-4">
+        <div class="pt-2 flex flex-row items-center gap-x-3">
+            <span class="text-lg font-bold">{% trans 'Views' context 'number of views' %}</span>
+            <div>
                 <a id="max_views-edit" class="cursor-pointer text-primary hover:text-secondary"
                     hx-get="{% url 'edit_shared_pdf' identifier=shared_pdf.id field_name='max_views' %}"
                     hx-target="#max_views"
@@ -92,38 +64,32 @@
                 </a>
             </div>
         </div>
-        <div class="pt-2">
-          <span class="text-lg font-bold">{% trans 'Deletion' %}</span>
-        </div>
-        <div class="flex justify-between text-slate-600 dark:text-slate-400">
-            <div class="w-[86%] text-sm">
-                <span id="deletion_date">
-                    {{ shared_pdf.deletes_in_string }}
+        <div class="text-slate-600 dark:text-slate-400">
+            <div class="w-full text-sm">
+                <span id="max_views">
+                    {% if shared_pdf.max_views %}
+                    {{ shared_pdf.views }}/{{ shared_pdf.max_views }}
+                    {% else %}
+                    {{ shared_pdf.views }} | {% trans 'not set' %}
+                    {% endif%}
                 </span>
             </div>
-            <div class="pr-0 md:pr-4">
-                <a id="deletion_date-edit" class="cursor-pointer text-primary hover:text-secondary"
-                    hx-get="{% url 'edit_shared_pdf' identifier=shared_pdf.id field_name='deletion_date' %}"
-                    hx-target="#deletion_date"
-                    hx-swap="innerHTML" >
-                    {{ edit }}
-                </a>
-            </div>
         </div>
-        <div class="pt-2">
+        {% include 'includes/details_field.html' with field='deletion_date' field_value=shared_pdf.deletes_in_string field_title=deletion_trans edit_url='edit_shared_pdf' obj_id=shared_pdf.id %}
+        <div class="pt-2 flex flex-row items-center gap-x-3">
             <span class="text-lg font-bold">PDF</span>
-        </div>
-        <div class="flex justify-between text-slate-600 dark:text-slate-400">
-            <div class="w-[86%] text-sm">
-                <span id="pdf">
-                    {{ shared_pdf.pdf.name }}
-                </span>
-            </div>
-            <div class="pr-0 md:pr-4">
+            <div>
                 <a id="pdf-view" href="{% url 'view_pdf' shared_pdf.pdf.id %}"
                     class="cursor-pointer text-primary hover:text-secondary">
                   {% trans 'View' context 'view pdf' %}
                 </a>
+            </div>
+        </div>
+        <div class="text-slate-600 dark:text-slate-400">
+            <div class="w-[86%] text-sm">
+                <span id="pdf">
+                    {{ shared_pdf.pdf.name }}
+                </span>
             </div>
         </div>
         <div class="pt-2">

@@ -88,7 +88,7 @@ class PdfDetailsE2ETestCase(PdfDingE2ETestCase):
             expect(self.page.locator("#name")).to_contain_text("other name")
 
             # edit description
-            expect(self.page.locator("#description")).to_contain_text("no description available")
+            expect(self.page.locator("#description")).to_contain_text("No Description Available")
             self.page.locator("#description-edit").click()
             self.page.locator("#id_description").click()
             self.page.locator("#id_description").fill("other description")
@@ -96,7 +96,7 @@ class PdfDetailsE2ETestCase(PdfDingE2ETestCase):
             expect(self.page.locator("#description")).to_contain_text("other description")
 
             # edit notes
-            expect(self.page.locator("#notes")).to_contain_text("no notes available")
+            expect(self.page.locator("#notes")).to_contain_text("No Notes Available")
             self.page.locator("#notes-edit").click()
             self.page.locator("#id_notes").click()
             self.page.locator("#id_notes").fill("other notes")
@@ -104,7 +104,7 @@ class PdfDetailsE2ETestCase(PdfDingE2ETestCase):
             expect(self.page.locator("#notes")).to_contain_text("other notes")
 
             # edit tags
-            expect(self.page.locator("#tags")).to_contain_text("no tags available")
+            expect(self.page.locator("#tags")).to_contain_text("No Tags Available")
             self.page.locator("#tags-edit").click()
             self.page.locator("#id_tag_string").click()
             self.page.locator("#id_tag_string").fill("other")
@@ -115,10 +115,10 @@ class PdfDetailsE2ETestCase(PdfDingE2ETestCase):
             self.page.locator("#id_tag_string").click()
             self.page.locator("#id_tag_string").fill("")
             self.page.get_by_role("button", name="Submit").click()
-            expect(self.page.locator("#tags")).to_contain_text("no tags available")
+            expect(self.page.locator("#tags")).to_contain_text("No Tags Available")
 
             # edit file directory
-            expect(self.page.locator("#file_directory")).to_contain_text("File directory not set")
+            expect(self.page.locator("#file_directory")).to_contain_text("No File Directory Available")
             self.page.locator("#file_directory-edit").click()
             self.page.locator("#id_file_directory").click()
             self.page.locator("#id_file_directory").fill("sub/dir")
