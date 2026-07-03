@@ -1070,7 +1070,6 @@ class TestMetadataViews(TestCase):
         assert changed_pdf.metadata.abstract == 'other_abstract'
 
     def test_process_field_exception(self):
-        # only test for a single field
         edit_metadata_mixin_object = pdf_views.EditMetadataMixin()
         # do a dummy request so we can get a request object
         response = self.client.get(reverse('pdf_overview'))

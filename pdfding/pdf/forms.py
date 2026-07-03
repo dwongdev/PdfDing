@@ -428,6 +428,11 @@ class SharedDeletionDateForm(forms.ModelForm):
         model = SharedPdf
         fields = []
 
+    def clean_deletion_input(self) -> str:  # pragma: no cover
+        """Check if the deletion input is in the correct format _d_h_m, e.g. 1d0h22m."""
+
+        return CleanHelpers.clean_time_input(self.cleaned_data['deletion_input'])
+
 
 class ViewSharedPasswordForm(forms.Form):
     """Form for entering the password when viewing a password protected share."""
@@ -650,7 +655,7 @@ class CleanHelpers:
         """Check if the provided time input is in the correct format _d_h_m, e.g. 1d0h22m."""
 
         if time_input and not re.match(r'^[0-9]+d[0-9]+h[0-9]+m$', str(time_input)):
-            raise forms.ValidationError(_('Wrong format! Format needs to be _d_h_m!'))
+            raise forms.ValidationError(_('Wrong format! Format needs to be _d_h_m! E.g.: 1d0h22m'))
 
         return time_input
 
