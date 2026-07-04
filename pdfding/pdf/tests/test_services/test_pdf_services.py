@@ -1,4 +1,4 @@
-import filecmp
+import json
 from datetime import datetime
 from pathlib import Path
 from unittest import mock
@@ -325,7 +325,7 @@ class TestPdfProcessingServices(TestCase):
         self.assertFalse(pdf.pdfcomment_set.count())
         self.assertFalse(pdf.pdfhighlight_set.count())
 
-    @mock.patch('pdf.services.pdf_services.PdfProcessingServices.export_annotations_to_json')
+    @mock.patch('pdf.services.pdf_services.PdfProcessingServices.export_annotations_to_json_buffer')
     def test_export_annotations(self, mock_export_annotation_to_json):
         pdf_1 = Pdf.objects.create(collection=self.user.profile.current_collection, name='pdf_1')
         pdf_2 = Pdf.objects.create(collection=self.user.profile.current_collection, name='pdf_2')
@@ -363,11 +363,7 @@ class TestPdfProcessingServices(TestCase):
         for actual_highlight, expected_highlight in zip(highlight_arg.order_by('text'), [highlight_1]):
             self.assertEqual(actual_highlight, expected_highlight)
 
-    @mock.patch(
-        'pdf.services.pdf_services.PdfProcessingServices.get_annotation_export_path',
-        return_value=Path(__file__).parents[1] / 'data' / 'tmp_export.json',
-    )
-    def test_export_annotation_to_json(self, mock_export_annotation_to_json):
+    def test_export_annotation_to_json(self):
         creation_date = datetime.strptime('2025-03-17 20:26:48+00:00', '%Y-%m-%d %H:%M:%S%z')
 
         pdf_1 = Pdf.objects.create(collection=self.user.profile.current_collection, name='some_pdf')
@@ -377,16 +373,20 @@ class TestPdfProcessingServices(TestCase):
         PdfComment.objects.create(text='c2', page=2, creation_date=creation_date, pdf=pdf_2)
         PdfComment.objects.create(text='another c', page=0, creation_date=creation_date, pdf=pdf_2)
 
-        export_path = service.PdfProcessingServices.get_annotation_export_path(str(self.user.id))
-        service.PdfProcessingServices.export_annotations_to_json(
+        annotation_buffer = service.PdfProcessingServices.export_annotations_to_json_buffer(
             PdfComment.objects.all(), self.user.profile.current_workspace.id
         )
+        annotation_buffer.seek(0)
+        generated_dict = json.load(annotation_buffer)
+        expected_dict = {
+            'another_pdf': [
+                {'text': 'another c', 'page': 0, 'creation_date': '2025-03-17 20:26:48+00:00'},
+                {'text': 'c2', 'page': 2, 'creation_date': '2025-03-17 20:26:48+00:00'},
+            ],
+            'some_pdf': [{'text': 'c1', 'page': 1, 'creation_date': '2025-03-17 20:26:48+00:00'}],
+        }
 
-        self.assertTrue(
-            filecmp.cmp(export_path, Path(__file__).parents[1] / 'data' / 'dummy_export.json', shallow=False)
-        )
-
-        export_path.unlink()
+        assert generated_dict == expected_dict
 
     @mock.patch('pdf.services.pdf_services.delete_empty_dirs_after_rename_or_delete')
     @mock.patch('pdf.services.pdf_services.get_file_path')

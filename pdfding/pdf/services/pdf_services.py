@@ -310,7 +310,7 @@ class PdfProcessingServices:
         return highlight_text
 
     @classmethod
-    def export_annotations(cls, profile: Profile, kind: str, pdf: Pdf = None):
+    def export_annotations(cls, profile: Profile, kind: str, pdf: Pdf = None) -> BytesIO:
         """Export annotations to json. Annotations can be comments or highlights of a single or all pdfs of a user."""
 
         if pdf:
@@ -325,14 +325,11 @@ class PdfProcessingServices:
             else:
                 pdf_annotations = PdfHighlight.objects.filter(pdf__in=current_workspace_pdfs).all()
 
-        cls.export_annotations_to_json(pdf_annotations, profile.current_workspace.id)
+        return cls.export_annotations_to_json_buffer(pdf_annotations, profile.current_workspace.id)
 
     @classmethod
-    def export_annotations_to_json(cls, annotations: QuerySet[PdfAnnotation], workspace_id: str):
+    def export_annotations_to_json_buffer(cls, annotations: QuerySet[PdfAnnotation], workspace_id: str) -> BytesIO:
         """Export the provided annotations to json."""
-
-        export_path = cls.get_annotation_export_path(workspace_id)
-        export_path.parent.mkdir(exist_ok=True)
 
         serialized_annotations = defaultdict(list)
 
@@ -347,14 +344,10 @@ class PdfProcessingServices:
 
         serialized_annotations = dict(sorted(serialized_annotations.items(), key=lambda x: str.lower(x[0])))
 
-        with open(export_path, 'w') as export_file:
-            json.dump(dict(serialized_annotations), export_file, indent=2)
+        json_buffer = BytesIO()
+        json_buffer.write(json.dumps(serialized_annotations, indent=2).encode())
 
-    @staticmethod
-    def get_annotation_export_path(workspace_id: str) -> Path:  # pragma: no cover
-        """Get the annotation export path of the specified workspace."""
-
-        return MEDIA_ROOT / workspace_id / 'annotations' / 'annotations_export.json'
+        return json_buffer
 
     @classmethod
     def process_renaming_pdf(cls, pdf: Pdf):

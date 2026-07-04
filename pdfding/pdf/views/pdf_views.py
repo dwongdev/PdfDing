@@ -946,14 +946,11 @@ class ExportAnnotations(View, PdfMixin):
 
             if identifier:
                 pdf = PdfMixin.get_object(request, identifier)
-                PdfProcessingServices.export_annotations(profile, kind, pdf)
+                annotations_buffer = PdfProcessingServices.export_annotations(profile, kind, pdf)
             else:
-                PdfProcessingServices.export_annotations(profile, kind)
+                annotations_buffer = PdfProcessingServices.export_annotations(profile, kind)
 
-            export_path = PdfProcessingServices.get_annotation_export_path(str(profile.user.id))
-            response = FileResponse(open(export_path, 'rb'), as_attachment=True, filename='export.yaml')
-
-            # delete the file
-            export_path.unlink()
+            annotations_buffer.seek(0)
+            response = FileResponse(annotations_buffer, as_attachment=True, filename='export.json')
 
             return response

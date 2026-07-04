@@ -15,7 +15,6 @@ from django.utils.datastructures import MultiValueDict
 from pdf import forms
 from pdf.models.pdf_models import Metadata, Pdf, PdfComment, PdfHighlight
 from pdf.models.tag_models import Tag
-from pdf.services.pdf_services import PdfProcessingServices
 from pdf.services.workspace_services import create_collection, create_workspace
 from pdf.views import pdf_views
 from users.service import get_demo_pdf
@@ -870,31 +869,17 @@ class TestViews(TestCase):
     def test_export_annotations_with_identifier(self, mock_export_annotations):
         pdf = Pdf.objects.create(collection=self.user.profile.current_collection, name='pdf')
 
-        export_path = PdfProcessingServices.get_annotation_export_path(str(self.user.id))
-        export_path.parent.mkdir(parents=True, exist_ok=True)
-        export_path.touch()
         self.client.get(reverse('export_annotations', kwargs={'kind': 'comments', 'identifier': pdf.id}))
 
-        # assert that the file was deleted
-        self.assertFalse(export_path.exists())
         mock_export_annotations.assert_called_once_with(self.user.profile, 'comments', pdf)
-
-        export_path.parent.rmdir()
 
     @mock.patch('pdf.views.pdf_views.PdfProcessingServices.export_annotations')
     def test_export_annotations_without_identifier(self, mock_export_annotations):
         Pdf.objects.create(collection=self.user.profile.current_collection, name='pdf')
 
-        export_path = PdfProcessingServices.get_annotation_export_path(str(self.user.id))
-        export_path.parent.mkdir(parents=True, exist_ok=True)
-        export_path.touch()
         self.client.get(reverse('export_annotations', kwargs={'kind': 'highlights'}))
 
-        # assert that the file was deleted
-        self.assertFalse(export_path.exists())
         mock_export_annotations.assert_called_once_with(self.user.profile, 'highlights')
-
-        export_path.parent.rmdir()
 
 
 class TestAnnotationMixin(TestCase):
