@@ -62,6 +62,9 @@ urlpatterns = [
         name='get_next_pdf_details_comment_overview_page',
     ),
     path('metadata/<identifier>', pdf_views.MetadataView.as_view(), name='metadata_details'),
+    path(
+        'metadata/export_bibtex/<identifier>', pdf_views.ExportMetadataBibtex.as_view(), name='export_metadata_bibtex'
+    ),
     path('metadata/edit/<identifier>/<field_name>', pdf_views.MetadataEdit.as_view(), name='edit_metadata'),
     # bulk edit views
     path('bulk_actions/', pdf_bulk_action_views.BulkActions.as_view(), name='bulk_actions'),

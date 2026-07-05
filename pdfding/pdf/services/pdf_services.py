@@ -148,6 +148,47 @@ class PdfProcessingServices:
         return name, tmp_metadata
 
     @classmethod
+    def export_metadata_bibtex(cls, pdf: Pdf) -> BytesIO:
+        """Export the the metadata to bibtex and write it to the buffer, so it can be used in a FileResponse."""
+
+        name = pdf.metadata.title.replace(' ', '_')
+        fields = [
+            'abstract',
+            'authors',
+            'doi',
+            'journal',
+            'keywords',
+            'number',
+            'pages',
+            'publisher',
+            'title',
+            'url',
+            'volume',
+            'year',
+        ]
+
+        first_line = f'@{str(pdf.metadata.reference_type).lower()}{{{name},'
+        bibtex_lines = [first_line]
+
+        for field in fields:
+            if field == 'authors':
+                title = 'AUTHOR'
+            else:
+                title = field.upper()
+            value = getattr(pdf.metadata, field)
+
+            if value:
+                line = f'    {title} = {{{value}}},'
+                bibtex_lines.append(line)
+
+        bibtex_lines.append('}')
+
+        bibtex_content = ('\n').join(bibtex_lines)
+        buffer = BytesIO(bibtex_content.encode())
+
+        return buffer
+
+    @classmethod
     def process_with_pypdfium(
         cls, pdf: Pdf, extract_thumbnail_and_preview: bool = True, delete_existing_thumbnail_and_preview: bool = False
     ):

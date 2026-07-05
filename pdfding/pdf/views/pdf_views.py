@@ -357,13 +357,15 @@ class EditMetadataMixin(PdfMixin):
         'authors',
         'doi',
         'keywords',
-        'issue',
         'journal',
+        'number',
         'pages',
+        'publisher',
         'reference_type',
         'title',
         'url',
         'volume',
+        'year',
     ]
     fields_requiring_extra_processing = fields
 
@@ -931,6 +933,27 @@ class Archive(PdfMixin, View):
             return HttpResponseClientRefresh()
 
         return redirect('pdf_overview')
+
+
+class ExportMetadataBibtex(View, PdfMixin):
+    """View for exporting the metadata of Pdf to bibtex and downloading it."""
+
+    def get(self, request: HttpRequest, identifier: str = ''):
+        """Return the exported metadata bibtex file as a FileResponse."""
+
+        pdf = PdfMixin.get_object(request, identifier)
+
+        if pdf.metadata.reference_type:
+            metadata_buffer = PdfProcessingServices.export_metadata_bibtex(pdf)
+
+            metadata_buffer.seek(0)
+            filename = f'{pdf.name.replace(" ", "_")}.bib'
+            response = FileResponse(metadata_buffer, as_attachment=True, filename=filename)
+
+            return response
+        else:
+            messages.warning(request, _('Bibtex file can only be created if the reference type is set!'))
+            return redirect(request.META.get('HTTP_REFERER', 'pdf_overview'))
 
 
 class ExportAnnotations(View, PdfMixin):

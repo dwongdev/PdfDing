@@ -865,6 +865,26 @@ class TestViews(TestCase):
         self.assertEqual(response.context['pdf_id'], str(pdf.id))
         self.assertTemplateUsed(response, 'partials/delete_pdf.html')
 
+    @mock.patch('pdf.views.pdf_views.PdfProcessingServices.export_metadata_bibtex')
+    def test_export_metadata_bibtex(self, mock_export_metadata):
+        pdf = Pdf.objects.create(collection=self.user.profile.current_collection, name='pdf')
+        Metadata.objects.create(pdf=pdf, reference_type=Metadata.ReferenceType.ARTICLE)
+
+        self.client.get(reverse('export_metadata_bibtex', kwargs={'identifier': pdf.id}))
+
+        mock_export_metadata.assert_called_once_with(pdf)
+
+    def test_export_metadata_bibtex_no_reference_type(self):
+        pdf = Pdf.objects.create(collection=self.user.profile.current_collection, name='pdf')
+        Metadata.objects.create(pdf=pdf)
+
+        response = self.client.get(reverse('export_metadata_bibtex', kwargs={'identifier': pdf.id}))
+
+        messages = get_messages(response.wsgi_request)
+
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(list(messages)[0].message, 'Bibtex file can only be created if the reference type is set!')
+
     @mock.patch('pdf.views.pdf_views.PdfProcessingServices.export_annotations')
     def test_export_annotations_with_identifier(self, mock_export_annotations):
         pdf = Pdf.objects.create(collection=self.user.profile.current_collection, name='pdf')
@@ -1016,7 +1036,7 @@ class TestMetadataViews(TestCase):
         edit_metadata_mixin_object = pdf_views.EditMetadataMixin()
         edit_metadata_mixin_object.get_edit_form_dict()
 
-        assert mock_create_field_form.call_count == 11
+        assert mock_create_field_form.call_count == 13
 
         mock_create_field_form.assert_has_calls(
             [
@@ -1024,13 +1044,15 @@ class TestMetadataViews(TestCase):
                 call(pdfding_model=Metadata, field='authors', field_widget=None),
                 call(pdfding_model=Metadata, field='doi', field_widget=None),
                 call(pdfding_model=Metadata, field='keywords', field_widget='textarea'),
-                call(pdfding_model=Metadata, field='issue', field_widget=None),
                 call(pdfding_model=Metadata, field='journal', field_widget=None),
+                call(pdfding_model=Metadata, field='number', field_widget=None),
                 call(pdfding_model=Metadata, field='pages', field_widget=None),
+                call(pdfding_model=Metadata, field='publisher', field_widget=None),
                 call(pdfding_model=Metadata, field='reference_type', field_widget=None),
                 call(pdfding_model=Metadata, field='title', field_widget=None),
                 call(pdfding_model=Metadata, field='url', field_widget=None),
                 call(pdfding_model=Metadata, field='volume', field_widget=None),
+                call(pdfding_model=Metadata, field='year', field_widget=None),
             ]
         )
 

@@ -362,12 +362,14 @@ class PdfMetadataE2ETestCase(PdfDingE2ETestCase):
             doi='some_doi',
             keywords='some_keywords',
             journal='some_journal',
-            issue='21',
+            number='21',
             pages='20-23',
             title='some_title',
             reference_type=Metadata.ReferenceType.ARTICLE,
             url='https://some.url',
+            year='2026',
             volume='3',
+            publisher='some_publisher',
         )
 
     def test_details_edit(self):
@@ -379,11 +381,14 @@ class PdfMetadataE2ETestCase(PdfDingE2ETestCase):
             expect(self.page.locator("#authors")).to_contain_text('some_author')
             expect(self.page.locator("#doi")).to_contain_text('some_doi')
             expect(self.page.locator("#journal")).to_contain_text('some_journal')
+            expect(self.page.locator("#number")).to_contain_text('21')
             expect(self.page.locator("#pages")).to_contain_text('20-23')
+            expect(self.page.locator("#publisher")).to_contain_text('publisher')
             expect(self.page.locator("#title")).to_contain_text('some_title')
             expect(self.page.locator("#keywords")).to_contain_text('some_keywords')
             expect(self.page.locator("#url")).to_contain_text('https://some.url')
             expect(self.page.locator("#volume")).to_contain_text('3')
+            expect(self.page.locator("#year")).to_contain_text('2026')
             expect(self.page.locator("#reference_type")).to_contain_text('Article')
 
             for field in [
@@ -392,10 +397,12 @@ class PdfMetadataE2ETestCase(PdfDingE2ETestCase):
                 'doi',
                 'keywords',
                 'journal',
-                'issue',
+                'number',
                 'pages',
+                'publisher',
                 'url',
                 'volume',
+                'year',
             ]:
                 self.page.locator(f"#{field}-edit").click()
                 self.page.locator(f"#id_{field}").click()
@@ -430,12 +437,14 @@ class PdfMetadataE2ETestCase(PdfDingE2ETestCase):
                 'doi',
                 'keywords',
                 'journal',
-                'issue',
+                'number',
                 'pages',
+                'publisher',
                 'reference_type',
                 'title',
                 'url',
                 'volume',
+                'year',
             ]:
 
                 expect(self.page.locator(f"#{field}-edit")).to_contain_text("Edit")

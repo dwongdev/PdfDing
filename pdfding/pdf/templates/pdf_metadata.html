@@ -21,6 +21,11 @@
                   </div>
               </div>
           </div>
+          <div class="flex flex-row items-center pb-2 text-md font-bold! [&>a]:text-primary [&>a]:hover:text-secondary [&>a]:cursor-pointer -mt-1!">
+            <a onclick="location.href='{% url 'export_metadata_bibtex' identifier=pdf.id %}'">
+              Download Citation
+            </a>
+          </div>
           {% translate "Title" as title_trans %}
           {% translate "Authors" as authors_trans %}
           {% translate "Abstract" as abstract_trans %}
@@ -28,8 +33,10 @@
           {% translate "Keywords" as keywords_trans %}
           {% translate "Journal" as journal_trans %}
           {% translate "Volume" as volume_trans %}
-          {% translate "Issue" as issue_trans %}
+          {% translate "Number" as number_trans %}
           {% translate "Pages" as pages_trans %}
+          {% translate "Publisher" as publisher_trans %}
+          {% translate "Year" as year_trans %}
           {% include 'includes/details_field.html' with field='title' field_value=pdf.metadata.title field_title=title_trans edit_url='edit_metadata' obj_id=pdf.id %}
           {% include 'includes/details_field.html' with field='authors' field_value=pdf.metadata.authors field_title=authors_trans edit_url='edit_metadata' obj_id=pdf.id %}
           {% include 'includes/details_field.html' with field='abstract' field_value=pdf.metadata.abstract field_title=abstract_trans edit_url='edit_metadata' obj_id=pdf.id %}
@@ -43,7 +50,7 @@
               {% include 'includes/details_field.html' with field='url' field_value=pdf.metadata.url field_title='URL' edit_url='edit_metadata' obj_id=pdf.id %}
             </div>
             <div>
-              {% include 'includes/details_field.html' with field='journal' field_value=pdf.metadata.journal field_title=journal_trans edit_url='edit_metadata' obj_id=pdf.id %}
+              {% include 'includes/details_field.html' with field='year' field_value=pdf.metadata.year field_title=year_trans edit_url='edit_metadata' obj_id=pdf.id %}
             </div>
           </div>
           <div class="flex flex-col xl:flex-row justify-between gap-x-6 xl:[&>div]:w-1/3">
@@ -51,10 +58,20 @@
               {% include 'includes/details_field.html' with field='volume' field_value=pdf.metadata.volume field_title=volume_trans edit_url='edit_metadata' obj_id=pdf.id %}
             </div>
             <div>
-              {% include 'includes/details_field.html' with field='issue' field_value=pdf.metadata.issue field_title=issue_trans edit_url='edit_metadata' obj_id=pdf.id %}
+              {% include 'includes/details_field.html' with field='pages' field_value=pdf.metadata.pages field_title=pages_trans edit_url='edit_metadata' obj_id=pdf.id %}
             </div>
             <div>
-              {% include 'includes/details_field.html' with field='pages' field_value=pdf.metadata.pages field_title=pages_trans edit_url='edit_metadata' obj_id=pdf.id %}
+              {% include 'includes/details_field.html' with field='number' field_value=pdf.metadata.number field_title=number_trans edit_url='edit_metadata' obj_id=pdf.id %}
+            </div>
+          </div>
+          <div class="flex flex-col xl:flex-row justify-between gap-x-6 xl:[&>div]:w-1/3">
+            <div>
+              {% include 'includes/details_field.html' with field='journal' field_value=pdf.metadata.journal field_title=journal_trans edit_url='edit_metadata' obj_id=pdf.id %}
+            </div>
+            <div>
+              {% include 'includes/details_field.html' with field='publisher' field_value=pdf.metadata.publisher field_title=publisher_trans edit_url='edit_metadata' obj_id=pdf.id %}
+            </div>
+            <div>
             </div>
           </div>
         </div>

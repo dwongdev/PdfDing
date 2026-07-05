@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from io import BytesIO
 from pathlib import Path
 from unittest import mock
 from uuid import uuid4
@@ -12,7 +13,7 @@ from django.db.models.functions import Lower
 from django.http.response import Http404
 from django.test import TestCase
 from django.urls import reverse
-from pdf.models.pdf_models import Pdf, PdfComment, PdfHighlight
+from pdf.models.pdf_models import Metadata, Pdf, PdfComment, PdfHighlight
 from PIL import Image
 from pypdfium2 import PdfDocument
 from users.service import get_demo_pdf
@@ -387,6 +388,29 @@ class TestPdfProcessingServices(TestCase):
         }
 
         assert generated_dict == expected_dict
+
+    def test_export_metadata_bibtex(self):
+        pdf = Pdf.objects.create(collection=self.user.profile.current_collection, name='some_pdf')
+        Metadata.objects.create(
+            pdf=pdf,
+            title='some_title',
+            abstract='some_abstract',
+            authors='some_author',
+            reference_type=Metadata.ReferenceType.ARTICLE,
+            year='2026',
+        )
+
+        bibtex_buffer = service.PdfProcessingServices.export_metadata_bibtex(pdf)
+        bibtex_bytes_string = BytesIO.read(bibtex_buffer)
+        generated_string = bibtex_bytes_string.decode()
+        expected_string = """@article{some_title,
+    ABSTRACT = {some_abstract},
+    AUTHOR = {some_author},
+    TITLE = {some_title},
+    YEAR = {2026},
+}"""
+
+        assert generated_string == expected_string
 
     @mock.patch('pdf.services.pdf_services.delete_empty_dirs_after_rename_or_delete')
     @mock.patch('pdf.services.pdf_services.get_file_path')
