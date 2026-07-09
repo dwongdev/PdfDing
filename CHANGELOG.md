@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.10.0 (Jul 09, 2026)
+### What's Changed
+* Add PDF metadata by @mrmn2 in https://github.com/mrmn2/PdfDing/pull/325, https://github.com/mrmn2/PdfDing/pull/328
+* Import metadata from bibtex by @mrmn2 in https://github.com/mrmn2/PdfDing/pull/332
+* Export metadata by @mrmn2 in https://github.com/mrmn2/PdfDing/pull/331
+* UI tweaks for details pages by @mrmn2 in https://github.com/mrmn2/PdfDing/pull/326,  https://github.com/mrmn2/PdfDing/pull/329
+* Dependecy updates by @dependabot[bot] in https://github.com/mrmn2/PdfDing/pull/327
+
 ## v1.9.0 (Jun 22, 2026)
 ### What's Changed
 
