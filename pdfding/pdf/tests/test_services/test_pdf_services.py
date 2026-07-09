@@ -10,6 +10,7 @@ from core.settings import MEDIA_ROOT
 from django.contrib.auth.models import User
 from django.core.files import File
 from django.db.models.functions import Lower
+from django.forms import ValidationError
 from django.http.response import Http404
 from django.test import TestCase
 from django.urls import reverse
@@ -71,7 +72,7 @@ class TestPdfProcessingServices(TestCase):
 
         assert metadata.title == 'some_title'
         assert metadata.abstract == 'abstract'
-        assert metadata.authors == 'some_author'
+        assert metadata.author == 'some_author'
         assert metadata.keywords == 'some_keywords'
 
     @mock.patch('pdf.services.pdf_services.PdfReader')
@@ -90,7 +91,7 @@ class TestPdfProcessingServices(TestCase):
 
         assert not metadata.title
         assert metadata.abstract == 'abstract'
-        assert not metadata.authors
+        assert not metadata.author
         assert metadata.keywords == 'some_keywords'
 
     @mock.patch('pdf.services.pdf_services.PdfReader')
@@ -104,7 +105,7 @@ class TestPdfProcessingServices(TestCase):
 
         assert not metadata.title
         assert not metadata.abstract
-        assert not metadata.authors
+        assert not metadata.author
         assert not metadata.keywords
 
     def test_setmetadata_exception(self):
@@ -114,7 +115,7 @@ class TestPdfProcessingServices(TestCase):
 
         assert not metadata.title
         assert not metadata.abstract
-        assert not metadata.authors
+        assert not metadata.author
         assert not metadata.keywords
 
     def test_create_pdf_name_and_title_from_title(self):
@@ -395,7 +396,7 @@ class TestPdfProcessingServices(TestCase):
             pdf=pdf,
             title='some_title',
             abstract='some_abstract',
-            authors='some_author',
+            author='some_author',
             reference_type=Metadata.ReferenceType.ARTICLE,
             year='2026',
         )
@@ -411,6 +412,46 @@ class TestPdfProcessingServices(TestCase):
 }"""
 
         assert generated_string == expected_string
+
+    def test_import_metadata_bibtex(self):
+        pdf = Pdf.objects.create(collection=self.user.profile.current_collection, name='some_pdf')
+        Metadata.objects.create(
+            pdf=pdf,
+            title='some_title',
+            reference_type=Metadata.ReferenceType.ARTICLE,
+            year='2026',
+        )
+        bibtex_str = """@Book{some_title,
+    ABSTRACT = {some_abstract},
+    AUTHOR = {some_author},
+}"""
+
+        service.PdfProcessingServices.import_metadata_bibtex(bibtex_str, pdf)
+
+        metadata = Pdf.objects.get(id=pdf.id).metadata
+        assert metadata.title == 'some_title'
+        assert metadata.reference_type == Metadata.ReferenceType.BOOK
+        assert metadata.author == 'some_author'
+        assert not metadata.year
+
+    def test_import_metadata_bibtex_too_many_references(self):
+        pdf = Pdf.objects.create(collection=self.user.profile.current_collection, name='some_pdf')
+        bibtex_str = """@article{some_title,
+    ABSTRACT = {some_abstract},
+}
+@article{other_title,
+    ABSTRACT = {some_abstract},
+}"""
+        with self.assertRaisesMessage(ValidationError, "['Number of Bibtex entries needs to be one!']"):
+            service.PdfProcessingServices.import_metadata_bibtex(bibtex_str, pdf)
+
+    def test_import_metadata_bibtex_wrong_reference_type(self):
+        pdf = Pdf.objects.create(collection=self.user.profile.current_collection, name='some_pdf')
+        bibtex_str = """@wrong{some_title,
+    ABSTRACT = {some_abstract},
+}"""
+        with self.assertRaisesMessage(ValidationError, "['Invalid reference type!']"):
+            service.PdfProcessingServices.import_metadata_bibtex(bibtex_str, pdf)
 
     @mock.patch('pdf.services.pdf_services.delete_empty_dirs_after_rename_or_delete')
     @mock.patch('pdf.services.pdf_services.get_file_path')

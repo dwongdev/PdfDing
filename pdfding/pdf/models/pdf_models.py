@@ -222,20 +222,20 @@ class Metadata(models.Model):
     class ReferenceType(models.TextChoices):
         ARTICLE = 'Article'
         BOOK = 'Book'
-        BOOKLET = ('Booklet',)
-        CONFERENCE = ('Conference',)
-        INBOOK = ('Inbook',)
-        INCOLLECTION = ('Incollection',)
-        INPROCEEDINGS = ('Inproceedings',)
-        MANUAL = ('Manual',)
-        MASTERTHESIS = ('Masterthesis',)
-        MISC = ('Misc',)
-        PHDTHESIS = ('Phdthesis',)
-        PROCEEDINGS = ('Proceedings',)
-        TECHREPORT = ('Techreport',)
-        UNPUBLISHED = ('Unpublished',)
+        BOOKLET = 'Booklet'
+        CONFERENCE = 'Conference'
+        INBOOK = 'Inbook'
+        INCOLLECTION = 'Incollection'
+        INPROCEEDINGS = 'Inproceedings'
+        MANUAL = 'Manual'
+        MASTERTHESIS = 'Masterthesis'
+        MISC = 'Misc'
+        PHDTHESIS = 'Phdthesis'
+        PROCEEDINGS = 'Proceedings'
+        TECHREPORT = 'Techreport'
+        UNPUBLISHED = 'Unpublished'
 
-    authors = models.CharField(max_length=256, blank=True)
+    author = models.CharField(max_length=256, blank=True)
     abstract = models.TextField(default='', blank=True, help_text=_('Optional'))
     doi = models.CharField(max_length=128, blank=True)
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)

@@ -17,6 +17,7 @@ from django.core.files import File
 from django.db.models import QuerySet
 from django.forms import ValidationError
 from django.http import Http404, HttpRequest
+from django.utils.translation import gettext_lazy as _
 from pdf.models.collection_models import Collection
 from pdf.models.pdf_models import (
     Metadata,
@@ -41,7 +42,7 @@ logger = getLogger(__file__)
 @dataclass
 class TmpMetadata:
     abstract: str
-    authors: str
+    author: str
     keywords: str
     title: str
 
@@ -81,7 +82,7 @@ class PdfProcessingServices:
             pdf=pdf,
             title=tmp_metadata.title,
             abstract=tmp_metadata.abstract,
-            authors=tmp_metadata.authors,
+            author=tmp_metadata.author,
             keywords=tmp_metadata.keywords,
         )
 
@@ -109,13 +110,13 @@ class PdfProcessingServices:
 
             extracted_title = pypdf_pdf.metadata.get('/Title', '').strip()
             extracted_abstract = pypdf_pdf.metadata.get('/Subject', '').strip()
-            extracted_authors = pypdf_pdf.metadata.get('/Author', '').strip()
+            extracted_author = pypdf_pdf.metadata.get('/Author', '').strip()
             extracted_keywords = pypdf_pdf.metadata.get('/Keywords', '').strip()
 
             tmp_metadata = TmpMetadata(
                 title=extracted_title,
                 abstract=extracted_abstract,
-                authors=extracted_authors,
+                author=extracted_author,
                 keywords=extracted_keywords,
             )
         except Exception as e:  # nosec # noqa
@@ -154,7 +155,7 @@ class PdfProcessingServices:
         name = pdf.metadata.title.replace(' ', '_')
         fields = [
             'abstract',
-            'authors',
+            'author',
             'doi',
             'journal',
             'keywords',
@@ -171,10 +172,7 @@ class PdfProcessingServices:
         bibtex_lines = [first_line]
 
         for field in fields:
-            if field == 'authors':
-                title = 'AUTHOR'
-            else:
-                title = field.upper()
+            title = field.upper()
             value = getattr(pdf.metadata, field)
 
             if value:
@@ -187,6 +185,47 @@ class PdfProcessingServices:
         buffer = BytesIO(bibtex_content.encode())
 
         return buffer
+
+    @classmethod
+    def import_metadata_bibtex(cls, bibtex_as_str: str, pdf: Pdf) -> None:
+        """Import the metadata of a PDF from bibtex."""
+
+        reference_type_matches = re.findall(r'\@(.*?)\{', bibtex_as_str)
+        if len(reference_type_matches) != 1:
+            raise ValidationError(_('Number of Bibtex entries needs to be one!'))
+
+        reference_type = reference_type_matches[0]
+        if reference_type.upper() not in Metadata.ReferenceType.names:
+            raise ValidationError(_('Invalid reference type!'))
+        else:
+            pdf.metadata.reference_type = Metadata.ReferenceType[reference_type.upper()]
+
+        kv = re.compile(r'\b(?P<key>\w+)\s*=\s*{(?P<value>[^}]+)}')
+        field_dict = dict(kv.findall(bibtex_as_str))
+
+        fields = [
+            'ABSTRACT',
+            'AUTHOR',
+            'DOI',
+            'JOURNAL',
+            'KEYWORDS',
+            'NUMBER',
+            'PAGES',
+            'PUBLISHER',
+            'TITLE',
+            'URL',
+            'VOLUME',
+            'YEAR',
+        ]
+
+        for field in fields:
+            if field_dict.get(field):
+                setattr(pdf.metadata, field.lower(), field_dict[field].strip())
+            # do not set the title to empty
+            elif field != 'TITLE':
+                setattr(pdf.metadata, field.lower(), '')
+
+        pdf.metadata.save()
 
     @classmethod
     def process_with_pypdfium(

@@ -280,6 +280,19 @@ class PdfCollectionForm(forms.ModelForm):
         )
 
 
+class ImportBibtexMetadata(forms.Form):
+    file = forms.FileField()
+
+    def clean_file(self):
+        file = self.cleaned_data['file']
+        file_type = magic.from_buffer(file.read(2048), mime=True)
+
+        if file_type.lower() != 'text/plain':
+            raise forms.ValidationError(_('Uploaded file is not a Bibtex file!'))
+        else:
+            return file
+
+
 class BaseShareForm(forms.ModelForm):
     """Base class for creating the form for sharing PDFs and collections."""
 

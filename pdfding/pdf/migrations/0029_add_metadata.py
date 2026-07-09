@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Metadata',
             fields=[
-                ('authors', models.CharField(blank=True, max_length=256)),
+                ('author', models.CharField(blank=True, max_length=256)),
                 ('abstract', models.TextField(blank=True, default='', help_text='Optional')),
                 ('doi', models.CharField(blank=True, max_length=128)),
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),

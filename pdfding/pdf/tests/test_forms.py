@@ -423,3 +423,23 @@ class TestDetailsForms(TestCase):
         assert created_form.Meta.model == Pdf
         assert created_form.Meta.fields == ['name']
         assert created_form.Meta.widgets == {'name': widget}
+
+    @mock.patch('pdf.forms.magic.from_buffer', return_value='text/plain')
+    def test_import_bibtex_clean_file_valid(self, mock_clean_file):
+        file_mock = mock.MagicMock(spec=File, name='FileMock')
+        file_mock.name = 'test.bib'
+        form = forms.ImportBibtexMetadata(
+            files={'file': file_mock},
+        )
+
+        assert form.is_valid()
+
+    @mock.patch('pdf.forms.magic.from_buffer', return_value='application/pdf')
+    def test_import_bibtex_clean_file_invalid(self, mock_clean_file):
+        file_mock = mock.MagicMock(spec=File, name='FileMock')
+        file_mock.name = 'test.bib'
+        form = forms.ImportBibtexMetadata(
+            files={'file': file_mock},
+        )
+
+        assert not form.is_valid()

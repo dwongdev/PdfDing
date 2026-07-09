@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.forms import ValidationError
 from django.http import Http404
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
@@ -885,6 +886,56 @@ class TestViews(TestCase):
         self.assertEqual(len(messages), 1)
         self.assertEqual(list(messages)[0].message, 'Bibtex file can only be created if the reference type is set!')
 
+    @mock.patch('pdf.views.pdf_views.PdfProcessingServices.import_metadata_bibtex')
+    @mock.patch('pdf.forms.magic.from_buffer', return_value='text/plain')
+    def test_import_metadata_bibtex(self, mock_from_buffer, mock_import):
+        pdf = Pdf.objects.create(name='pdf', collection=self.user.profile.current_collection, description='something')
+
+        simple_file = SimpleUploadedFile('simple.bib', b'dummy_contents')
+        response = self.client.post(
+            reverse('import_metadata_bibtex', kwargs={'identifier': pdf.id}),
+            data={'file': simple_file},
+            follow=True,
+        )
+
+        mock_import.assert_called_once_with('dummy_contents', pdf)
+        self.assertRedirects(response, reverse('metadata_details', kwargs={'identifier': pdf.id}), status_code=302)
+
+    def test_import_metadata_bibtex_invalid_form(self):
+        pdf = Pdf.objects.create(name='pdf', collection=self.user.profile.current_collection, description='something')
+
+        # post is invalid because file is missing
+        # follow=True is needed for getting the message
+        response = self.client.post(
+            reverse('import_metadata_bibtex', kwargs={'identifier': pdf.id}),
+            follow=True,
+        )
+        message = list(response.context['messages'])[0]
+
+        self.assertEqual(message.message, 'Uploaded file is not a valid Bibtex file!')
+        self.assertEqual(message.tags, 'warning')
+        self.assertRedirects(response, reverse('metadata_details', kwargs={'identifier': pdf.id}), status_code=302)
+
+    @mock.patch(
+        'pdf.views.pdf_views.PdfProcessingServices.import_metadata_bibtex', side_effect=ValidationError('error')
+    )
+    @mock.patch('pdf.forms.magic.from_buffer', return_value='text/plain')
+    def test_import_metadata_bibtex_validation_error(self, mock_from_buffer, mock_import):
+        pdf = Pdf.objects.create(name='pdf', collection=self.user.profile.current_collection, description='something')
+
+        simple_file = SimpleUploadedFile('simple.bib', b'these are the file contents!')
+        # follow=True is needed for getting the message
+        response = self.client.post(
+            reverse('import_metadata_bibtex', kwargs={'identifier': pdf.id}),
+            data={'file': simple_file},
+            follow=True,
+        )
+        message = list(response.context['messages'])[0]
+
+        self.assertEqual(message.message, 'error')
+        self.assertEqual(message.tags, 'warning')
+        self.assertRedirects(response, reverse('metadata_details', kwargs={'identifier': pdf.id}), status_code=302)
+
     @mock.patch('pdf.views.pdf_views.PdfProcessingServices.export_annotations')
     def test_export_annotations_with_identifier(self, mock_export_annotations):
         pdf = Pdf.objects.create(collection=self.user.profile.current_collection, name='pdf')
@@ -1041,7 +1092,7 @@ class TestMetadataViews(TestCase):
         mock_create_field_form.assert_has_calls(
             [
                 call(pdfding_model=Metadata, field='abstract', field_widget='textarea'),
-                call(pdfding_model=Metadata, field='authors', field_widget=None),
+                call(pdfding_model=Metadata, field='author', field_widget=None),
                 call(pdfding_model=Metadata, field='doi', field_widget=None),
                 call(pdfding_model=Metadata, field='keywords', field_widget='textarea'),
                 call(pdfding_model=Metadata, field='journal', field_widget=None),

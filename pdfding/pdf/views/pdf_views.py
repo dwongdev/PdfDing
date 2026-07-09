@@ -354,7 +354,7 @@ class EditMetadataMixin(PdfMixin):
     obj_class = Pdf
     fields = [
         'abstract',
-        'authors',
+        'author',
         'doi',
         'keywords',
         'journal',
@@ -935,10 +935,47 @@ class Archive(PdfMixin, View):
         return redirect('pdf_overview')
 
 
+class ImportMetadataBibtex(View, PdfMixin):
+    """View for importing the metadata of a Pdf from bibtex."""
+
+    def get(self, request: HttpRequest, identifier: str):  # pragma: no cover
+        """Open the user upload modal"""
+
+        if request.htmx:
+            pdf = self.get_object(request, identifier)
+
+            return render(
+                request, 'partials/import_metadata_bibtex.html', {'pdf': pdf, 'form': forms.ImportBibtexMetadata}
+            )
+
+        return redirect('pdf_overview')
+
+    def post(self, request: HttpRequest, identifier: str):
+        """Import the metadata from a bibtex file."""
+
+        pdf = self.get_object(request, identifier)
+        file_form = forms.ImportBibtexMetadata(request.POST, request.FILES)
+
+        if file_form.is_valid():
+            bibtex_file = request.FILES.get('file')
+            bibtex_file.seek(0)
+            bibtex_contents = bibtex_file.read()
+
+            try:
+                PdfProcessingServices.import_metadata_bibtex(bibtex_contents.decode(), pdf)
+            except ValidationError as e:
+                messages.warning(request, str(e).replace("['", '').replace("']", ''))
+
+        else:
+            messages.warning(request, _('Uploaded file is not a valid Bibtex file!'))
+
+        return redirect('metadata_details', identifier=identifier)
+
+
 class ExportMetadataBibtex(View, PdfMixin):
     """View for exporting the metadata of Pdf to bibtex and downloading it."""
 
-    def get(self, request: HttpRequest, identifier: str = ''):
+    def get(self, request: HttpRequest, identifier: str):
         """Return the exported metadata bibtex file as a FileResponse."""
 
         pdf = PdfMixin.get_object(request, identifier)
@@ -953,7 +990,7 @@ class ExportMetadataBibtex(View, PdfMixin):
             return response
         else:
             messages.warning(request, _('Bibtex file can only be created if the reference type is set!'))
-            return redirect(request.META.get('HTTP_REFERER', 'pdf_overview'))
+            return redirect('metadata_details', identifier=identifier)
 
 
 class ExportAnnotations(View, PdfMixin):

@@ -65,6 +65,9 @@ urlpatterns = [
     path(
         'metadata/export_bibtex/<identifier>', pdf_views.ExportMetadataBibtex.as_view(), name='export_metadata_bibtex'
     ),
+    path(
+        'metadata/import_bibtex/<identifier>', pdf_views.ImportMetadataBibtex.as_view(), name='import_metadata_bibtex'
+    ),
     path('metadata/edit/<identifier>/<field_name>', pdf_views.MetadataEdit.as_view(), name='edit_metadata'),
     # bulk edit views
     path('bulk_actions/', pdf_bulk_action_views.BulkActions.as_view(), name='bulk_actions'),

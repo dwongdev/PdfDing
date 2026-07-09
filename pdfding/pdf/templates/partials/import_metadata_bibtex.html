@@ -1,0 +1,20 @@
+{% load i18n %}
+<div id="import_inner" class="rounded-2xl drop-shadow-2xl shadow-black w-full p-4
+            bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">
+  <div class="text-xl font-bold pb-4">
+    {% trans 'Import Metadata from Bibtex' %}
+  </div>
+  <form action="{% url 'import_metadata_bibtex' identifier=pdf.id %}"
+      method="post"
+      enctype="multipart/form-data">
+      {% csrf_token %}
+      {% for field in form %}{{ field }}{% endfor %}
+      <div class="flex flex-row gap-x-2 mt-4">
+        <button id="submit_import" class="flex! items-center justify-center w-18" type="submit">{% trans 'Submit' %}</button>
+        <div id="cancel_import" @click="show_import_modal = false"
+              class="flex! items-center font-semibold text-primary border-2 border-primary rounded-md cursor-pointer hover:bg-primary hover:text-white">
+          <span class="px-1">{% trans 'Cancel' %}</span>
+        </div>
+      </div>
+  </form>
+</div>

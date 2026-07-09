@@ -358,7 +358,7 @@ class PdfMetadataE2ETestCase(PdfDingE2ETestCase):
         Metadata.objects.create(
             pdf=self.pdf,
             abstract='some_abstract',
-            authors='Some some_author',
+            author='Some some_author',
             doi='some_doi',
             keywords='some_keywords',
             journal='some_journal',
@@ -378,7 +378,7 @@ class PdfMetadataE2ETestCase(PdfDingE2ETestCase):
 
             expect(self.page.locator("#name")).to_contain_text('some_pdf')
             expect(self.page.locator("#abstract")).to_contain_text('some_abstract')
-            expect(self.page.locator("#authors")).to_contain_text('some_author')
+            expect(self.page.locator("#author")).to_contain_text('some_author')
             expect(self.page.locator("#doi")).to_contain_text('some_doi')
             expect(self.page.locator("#journal")).to_contain_text('some_journal')
             expect(self.page.locator("#number")).to_contain_text('21')
@@ -393,7 +393,7 @@ class PdfMetadataE2ETestCase(PdfDingE2ETestCase):
 
             for field in [
                 'abstract',
-                'authors',
+                'author',
                 'doi',
                 'keywords',
                 'journal',
@@ -433,7 +433,7 @@ class PdfMetadataE2ETestCase(PdfDingE2ETestCase):
 
             for field in [
                 'abstract',
-                'authors',
+                'author',
                 'doi',
                 'keywords',
                 'journal',
@@ -452,3 +452,33 @@ class PdfMetadataE2ETestCase(PdfDingE2ETestCase):
                 expect(self.page.locator(f"#{field}-edit")).to_contain_text("Cancel")
                 self.page.locator(f"#{field}-edit").click()
                 expect(self.page.locator(f"#{field}-edit")).to_contain_text("Edit")
+
+    @patch('pdf.forms.magic.from_buffer', return_value='text/plain')
+    def test_import_metadata_bibtex(self, mock_from_buffer):
+        bibtex_string = """@Book{blaaaaaaaaaa,
+    TITLE = {other_title},
+    ABSTRACT = {other_abstract},
+}"""
+
+        with sync_playwright() as p:
+            self.open(reverse('metadata_details', kwargs={'identifier': self.pdf.id}), p)
+
+            self.page.get_by_text("Import Bibtex").click()
+            self.page.get_by_role("button", name="Choose File").click()
+            self.page.get_by_role("button", name="Choose File").set_input_files(
+                files=[{"name": "test.bib", "mimeType": "text/plain", "buffer": bibtex_string.encode()}],
+            )
+            self.page.locator("#submit_import").click()
+
+            expect(self.page.locator("#title")).to_contain_text('other_title')
+            expect(self.page.locator("#abstract")).to_contain_text('other_abstract')
+            expect(self.page.locator("#reference_type")).to_contain_text('Book')
+
+    def test_import_metadata_bibtex_cancel(self):
+        with sync_playwright() as p:
+            self.open(reverse('metadata_details', kwargs={'identifier': self.pdf.id}), p)
+
+            self.page.get_by_text("Import Bibtex").click()
+            expect(self.page.locator("#import_bibtex_modal")).to_be_visible()
+            self.page.locator("#cancel_import").click()
+            expect(self.page.locator("#import_bibtex_modal")).not_to_be_visible()

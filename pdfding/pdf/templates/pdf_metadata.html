@@ -2,7 +2,10 @@
 {% load static %}
 {% load i18n %}
 {% block content %}
-<div class="flex flex-col md:flex-row md:justify-end">
+<div x-data="{ show_import_modal: false }">
+  <div
+     class="flex flex-col md:flex-row md:justify-end"
+     :class="{ 'opacity-15': show_import_modal }">
     <div class="w-full! md:w-72! lg:w-72! px-2 md:px-4 pt-2">
         {% include 'includes/pdf_details_sidebar.html' with page='pdf_metadata' %}
     </div>
@@ -23,11 +26,20 @@
           </div>
           <div class="flex flex-row items-center pb-2 text-md font-bold! [&>a]:text-primary [&>a]:hover:text-secondary [&>a]:cursor-pointer -mt-1!">
             <a onclick="location.href='{% url 'export_metadata_bibtex' identifier=pdf.id %}'">
-              Download Citation
+              {% trans 'Download Bibtex' %}
+            </a>
+            <svg class="w-5! h-5!" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12.1" cy="12.1" r="1"></circle>
+            </svg>
+            <a id="show-import-modal"
+              hx-get="{% url 'import_metadata_bibtex' pdf.id %}"
+              hx-target="#import_bibtex_modal"
+              hx-swap="innerHTML"
+              @click="show_import_modal = true">{% trans 'Import Bibtex' %}
             </a>
           </div>
           {% translate "Title" as title_trans %}
-          {% translate "Authors" as authors_trans %}
+          {% translate "Author" as author_trans %}
           {% translate "Abstract" as abstract_trans %}
           {% translate "Reference Type" as reference_type_trans %}
           {% translate "Keywords" as keywords_trans %}
@@ -38,7 +50,7 @@
           {% translate "Publisher" as publisher_trans %}
           {% translate "Year" as year_trans %}
           {% include 'includes/details_field.html' with field='title' field_value=pdf.metadata.title field_title=title_trans edit_url='edit_metadata' obj_id=pdf.id %}
-          {% include 'includes/details_field.html' with field='authors' field_value=pdf.metadata.authors field_title=authors_trans edit_url='edit_metadata' obj_id=pdf.id %}
+          {% include 'includes/details_field.html' with field='author' field_value=pdf.metadata.author field_title=author_trans edit_url='edit_metadata' obj_id=pdf.id %}
           {% include 'includes/details_field.html' with field='abstract' field_value=pdf.metadata.abstract field_title=abstract_trans edit_url='edit_metadata' obj_id=pdf.id %}
           {% include 'includes/details_field.html' with field='reference_type' field_value=pdf.metadata.reference_type field_title=reference_type_trans edit_url='edit_metadata' obj_id=pdf.id %}
           {% include 'includes/details_field.html' with field='keywords' field_value=pdf.metadata.keywords field_title=keywords_trans edit_url='edit_metadata' obj_id=pdf.id %}
@@ -76,5 +88,12 @@
           </div>
         </div>
     </div>
+  </div>
+  <div x-show="show_import_modal" x-cloak
+        @click.away="show_import_modal = false"
+        @keyup.escape.window="show_import_modal = false"
+        class="fixed inset-x-0 top-40 mx-auto my-auto w-80! lg:w-[28rem]! z-20">
+      <div id="import_bibtex_modal"></div>
+  </div>
 </div>
 {% endblock %}
