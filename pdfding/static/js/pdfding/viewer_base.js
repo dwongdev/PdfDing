@@ -8,7 +8,11 @@ function start_viewer(page_number, pdf_url, tab_title, language_code) {
       PDFViewerApplication.setTitle = function set_new_title(new_title) {
         const editorIndicator = this._hasAnnotationEditors;
         document.title = `${editorIndicator ? "* " : ""}${tab_title}`;
-      }
+      };
+      // since the udate to v6.y.z there was a prompt for leaving the page even after saving
+      PDFViewerApplication._hasChanges = function () {
+        return this._hasAnnotationEditors;
+      };
   });
 
   // set properties
