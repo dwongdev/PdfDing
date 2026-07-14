@@ -26,12 +26,7 @@
     </a>
     <a id="open-actions-{{ loop_id }}" @click="show_actions_{{ loop_id }} = !show_actions_{{ loop_id }}"
        @click.away="show_actions_{{ loop_id }} = false"
-       @keyup.escape.window="show_actions_{{ loop_id }} = false"       >
-        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="1"></circle>
-            <circle cx="12" cy="5" r="1"></circle>
-            <circle cx="12" cy="19" r="1"></circle>
-        </svg>
+       @keyup.escape.window="show_actions_{{ loop_id }} = false">
+        {% include 'includes/svg/vertical_dots.html' %}
     </a>
 </div>

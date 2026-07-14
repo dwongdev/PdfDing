@@ -104,3 +104,13 @@ class TestAdminViews(TestCase):
         self.assertEqual(response.context['number_of_users'], 4)
         self.assertEqual(response.context['number_of_pdfs'], 0)
         self.assertEqual(response.context['current_version'], 'DEV')
+
+    def test_delete_get(self):
+        user = User.objects.create_user(username='non_admin', password='12345', email='non_admin@a.com')
+
+        headers = {'HTTP_HX-Request': 'true'}
+        response = self.client.get(reverse('admin_delete_user', kwargs={'identifier': user.id}), **headers)
+
+        self.assertEqual(response.context['user_id'], str(user.id))
+        self.assertEqual(response.context['user_mail'], user.email)
+        self.assertTemplateUsed(response, 'partials/delete_user.html')

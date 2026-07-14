@@ -547,6 +547,16 @@ class PdfOverviewE2ETestCase(PdfDingE2ETestCase):
 
         self.assertEqual(changed_user.profile.layout, Profile.LayoutChoice.GRID)
 
+    def test_open_close_action(self):
+        with sync_playwright() as p:
+            self.open(f"{reverse('pdf_overview')}", p)
+
+            expect(self.page.locator("#actions-1")).not_to_be_visible()
+            self.page.locator("#open-actions-1").click()
+            expect(self.page.locator("#actions-1")).to_be_visible()
+            self.page.locator("body").click()
+            expect(self.page.locator("#actions-1")).not_to_be_visible()
+
     @patch('pdf.views.pdf_views.OverviewMixin.fuzzy_filter_pdfs', new=new_fuzzy_filter_pdfs)
     def test_delete(self):
         with sync_playwright() as p:

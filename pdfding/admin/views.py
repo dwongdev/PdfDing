@@ -103,6 +103,20 @@ class OverviewQuery(base_views.BaseOverviewQuery):
 class DeleteProfile(BaseAdminRequiredMixin, AdminMixin, base_views.BaseDelete):
     """View for deleting a user profile"""
 
+    def get(self, request: HttpRequest, identifier: str):
+        """Triggered by htmx. Display an inline form for deleting the user."""
+
+        if request.htmx:
+            user = User.objects.get(id=identifier)
+
+            return render(
+                request,
+                'partials/delete_user.html',
+                {'user_id': identifier, 'user_mail': user.email},
+            )
+
+        return redirect('pdf_overview')  # pragma: no cover
+
 
 class AdjustAdminRights(BaseAdminRequiredMixin, View):
     """View for adjusting the admin rights"""

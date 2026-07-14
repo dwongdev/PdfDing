@@ -1,10 +1,17 @@
 {% for user in page_obj %}
 {% widthratio current_page|add:-1 1 items_per_page as loop_offset %}
 {% with loop_id=forloop.counter|add:loop_offset %}
-<div class="border rounded-md bg-slate-100 border-slate-300 hover:border-slate-400
-            dark:bg-slate-800 dark:border-slate-700 dark:hover:border-slate-600">
-    <div class="px-3 md:px-5 py-1">
+<div x-data="{ show_actions_{{ loop_id }}: false }"
+     class="relative border rounded-md
+            hover:border-slate-400 dark:hover:border-slate-600
+            {% if loop_id|add:1|divisibleby:2 %}
+            bg-slate-200/70 dark:bg-slate-800 border-slate-200/70 dark:border-slate-800
+            {% else %}
+            border-slate-50 dark:border-slate-900
+            {% endif %}">
+    <div class="px-3 md:pl-5 py-1">
         {% include 'includes/user.html' %}
+        {% include 'includes/user_actions.html' %}
     </div>
 </div>
 {% endwith %}

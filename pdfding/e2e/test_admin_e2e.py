@@ -35,18 +35,12 @@ class AdminE2ETestCase(PdfDingE2ETestCase):
         with sync_playwright() as p:
             self.open(reverse("user_overview"), p)
 
-            # test the displayed email addresses
+            expect(self.page.locator("#user-4")).to_contain_text("a@a.com")
+            expect(self.page.locator("#user-4-admin-icon")).to_be_visible()
+
             for i in range(1, 4):
                 expect(self.page.locator(f"#user-{i}")).to_contain_text(f"{i}@a.com")
-
-            expect(self.page.locator("#user-4")).to_contain_text("a@a.com | Admin")
-
-            # assert there is only one admin
-            expect(self.page.get_by_text("| Admin")).to_have_count(1)
-
-            expect(self.page.get_by_text("Delete")).to_have_count(4)
-            expect(self.page.get_by_text("Remove Admin Rights")).to_have_count(1)
-            expect(self.page.get_by_text("Add Admin Rights")).to_have_count(3)
+                expect(self.page.locator(f"#user-{i}-admin-icon")).not_to_be_visible()
 
     def test_change_sorting(self):
         self.assertEqual(self.user.profile.user_sorting, Profile.UserSortingChoice.NEWEST)
@@ -81,16 +75,15 @@ class AdminE2ETestCase(PdfDingE2ETestCase):
     def test_search_admin(self):
         with sync_playwright() as p:
             self.open(f"{reverse('user_overview')}?tags=admin", p)
-            expect(self.page.locator("#user-1")).to_contain_text("a@a.com | Admin")
-
-            expect(self.page.get_by_text("Delete")).to_have_count(1)
+            expect(self.page.locator("#user-1")).to_contain_text("a@a.com")
+            for i in range(2, 5):
+                expect(self.page.locator(f"#user-{i}")).not_to_be_visible()
 
     def test_search_email(self):
         with sync_playwright() as p:
             self.open(f"{reverse('user_overview')}?search=1@a.", p)
             expect(self.page.locator("#user-1")).to_contain_text("1@a.com")
-
-            expect(self.page.get_by_text("Delete")).to_have_count(1)
+            expect(self.page.locator("#user-2")).not_to_be_visible()
 
     def test_search_filters(self):
         with sync_playwright() as p:
@@ -117,72 +110,56 @@ class AdminE2ETestCase(PdfDingE2ETestCase):
 
             for i in range(1, 4):
                 expect(self.page.locator(f"#user-{i}")).to_contain_text(f"{4 - i}@a.com")
-            expect(self.page.locator("#user-4")).to_contain_text("a@a.com | Admin")
+            expect(self.page.locator("#user-4")).to_contain_text("a@a.com")
+
+    def test_open_close_action(self):
+        with sync_playwright() as p:
+            self.open(f"{reverse('user_overview')}", p)
+
+            expect(self.page.locator("#actions-1")).not_to_be_visible()
+            self.page.locator("#open-actions-1").click()
+            expect(self.page.locator("#actions-1")).to_be_visible()
+            self.page.locator("body").click()
+            expect(self.page.locator("#actions-1")).not_to_be_visible()
 
     def test_delete(self):
-        with sync_playwright() as p:
-            # only display one user
-            self.open(f"{reverse('user_overview')}?q=1@a.", p)
-
-            expect(self.page.locator("body")).to_contain_text("1@a.com")
-            self.page.locator("#delete-action-1").click()
-            self.page.locator("#delete-confirm-1").click()
-
-            expect(self.page.get_by_role("button", name="Delete")).to_have_count(0)
-
-    def test_chancel_delete(self):
-        with sync_playwright() as p:
-            self.open(reverse('user_overview'), p)
-
-            expect(self.page.locator("#delete-confirm-1")).not_to_be_visible()
-            expect(self.page.locator("#delete-cancel-1")).not_to_be_visible()
-            expect(self.page.locator("#delete-action-1")).to_be_visible()
-            self.page.locator("#delete-action-1").click()
-            expect(self.page.locator("#delete-confirm-1")).to_be_visible()
-            expect(self.page.locator("#delete-cancel-1")).to_be_visible()
-            expect(self.page.locator("#delete-action-1")).not_to_be_visible()
-            self.page.locator("#delete-cancel-1").click()
-            expect(self.page.locator("#delete-confirm-1")).not_to_be_visible()
-            expect(self.page.locator("#delete-cancel-1")).not_to_be_visible()
-            expect(self.page.locator("#delete-action-1")).to_be_visible()
-
-    def test_add_remove_admin_rights(self):
         with sync_playwright() as p:
             # only display one user
             self.open(f"{reverse('user_overview')}?search=1@a.", p)
 
             expect(self.page.locator("body")).to_contain_text("1@a.com")
-            expect(self.page.locator("#admin-action-1")).to_contain_text("Add Admin Rights")
-            expect(self.page.locator("body")).not_to_contain_text("| Admin")
+            self.page.locator("#open-actions-1").click()
+            self.page.locator("#delete-1").click()
+            self.page.get_by_role("button", name="Submit").click()
+            expect(self.page.locator("body")).not_to_contain_text("1@a.com")
 
-            self.page.locator("#admin-action-1").click()
-            self.page.locator("#admin-confirm-1").click()
-
-            expect(self.page.locator("body")).to_contain_text("1@a.com | Admin")
-            expect(self.page.locator("#admin-action-1")).to_contain_text("Remove Admin Rights")
-
-            self.page.locator("#admin-action-1").click()
-            self.page.locator("#admin-confirm-1").click()
-
-            expect(self.page.locator("body")).to_contain_text("1@a.com")
-            expect(self.page.locator("body")).not_to_contain_text("| Admin")
-            expect(self.page.locator("#admin-action-1")).to_contain_text("Add Admin Rights")
-
-    def test_admin_action_cancel(self):
+    def test_chancel_delete(self):
         with sync_playwright() as p:
-            self.open(reverse('user_overview'), p)
+            # only display one user
+            self.open(f"{reverse('user_overview')}", p)
 
-            expect(self.page.locator("#admin-confirm-1")).not_to_be_visible()
-            expect(self.page.locator("#admin-cancel-1")).not_to_be_visible()
-            expect(self.page.locator("#admin-action-1")).to_be_visible()
-            self.page.locator("#admin-action-1").click()
-            expect(self.page.locator("#admin-confirm-1")).to_be_visible()
-            expect(self.page.locator("#admin-cancel-1")).to_be_visible()
-            expect(self.page.locator("#admin-action-1")).not_to_be_visible()
-            self.page.locator("#admin-cancel-1").click()
-            expect(self.page.locator("#admin-confirm-1")).not_to_be_visible()
-            expect(self.page.locator("#admin-cancel-1")).not_to_be_visible()
-            expect(self.page.locator("#admin-action-1")).to_be_visible()
+            expect(self.page.locator("#delete_user_modal")).not_to_be_visible()
+            self.page.locator("#open-actions-1").click()
+            self.page.locator("#delete-1").click()
+            expect(self.page.locator("#delete_user_modal")).to_be_visible()
+            self.page.get_by_text("Cancel").click()
+            expect(self.page.locator("#delete_user_modal")).not_to_be_visible()
+
+    def test_add_remove_admin_rights(self):
+        with sync_playwright() as p:
+            self.open(f"{reverse('user_overview')}?search=1@a.", p)
+            expect(self.page.locator("body")).to_contain_text("1@a.com")
+            expect(self.page.locator("#user-1-admin-icon")).not_to_be_visible()
+            self.page.locator("#open-actions-1").click()
+            expect(self.page.locator("#actions-1")).to_contain_text("Add Admin Rights")
+            self.page.locator("#adjust-admin-rights-1").click()
+            expect(self.page.locator("#user-1-admin-icon")).to_be_visible()
+            self.page.locator("#open-actions-1").click()
+            expect(self.page.locator("#actions-1")).to_contain_text("Remove Admin Rights")
+            self.page.locator("#adjust-admin-rights-1").click()
+            expect(self.page.locator("#user-1-admin-icon")).not_to_be_visible()
+            self.page.locator("#open-actions-1").click()
+            expect(self.page.locator("#actions-1")).to_contain_text("Add Admin Rights")
 
 
 class NoAdminE2ETestCase(PdfDingE2ETestCase):
