@@ -161,6 +161,22 @@ class AdminE2ETestCase(PdfDingE2ETestCase):
             self.page.locator("#open-actions-1").click()
             expect(self.page.locator("#actions-1")).to_contain_text("Add Admin Rights")
 
+    def test_create_user(self):
+        with sync_playwright() as p:
+            self.open(reverse('user_overview'), p)
+            expect(self.page.locator("body")).not_to_contain_text("b@a.com")
+
+            self.page.get_by_role("link", name="Add User").click()
+            self.page.get_by_role("textbox", name="Email:").click()
+            self.page.get_by_role("textbox", name="Email:").fill("b@a.com")
+            self.page.get_by_role("textbox", name="Password:").click()
+            self.page.get_by_role("textbox", name="Password:").fill("pw")
+            self.page.get_by_role("textbox", name="Password2:").click()
+            self.page.get_by_role("textbox", name="Password2:").fill("pw")
+            self.page.get_by_role("button", name="Submit").click()
+
+            expect(self.page.locator("body")).to_contain_text("b@a.com")
+
 
 class NoAdminE2ETestCase(PdfDingE2ETestCase):
     def test_404(self):

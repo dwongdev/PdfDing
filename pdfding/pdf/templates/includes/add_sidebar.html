@@ -6,10 +6,17 @@
             [&>div>a]:flex [&>div>a]:flex-row [&>div>a]:items-center [&>div>a]:gap-x-2
             [&>div]:hover:bg-slate-200 dark:[&>div]:hover:bg-slate-700">
     <div>
+        {% if page == 'admin_create_user' %}
+        <a href="{% url 'user_overview' %}">
+            {% include 'includes/svg/back.html' %}
+            <span class="hidden md:block">{% trans 'Back to App' %}</span>
+        </a>
+        {% else %}
         <a href="{% url 'pdf_overview' %}">
             {% include 'includes/svg/back.html' %}
             <span class="hidden md:block">{% trans 'Back to App' %}</span>
         </a>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

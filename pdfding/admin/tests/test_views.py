@@ -1,4 +1,6 @@
-from admin.views import AdminMixin, OverviewMixin
+from admin import views as admin_views
+from admin.forms import CreateUserForm
+from allauth.account.models import EmailAddress
 from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -34,7 +36,7 @@ class TestOverviewMixin(TestCase):
             [['1_b@a.com', '2_b@a.com', '3_b@a.com'], ['a@a.com']],
         ):
             response = self.client.get(f'{reverse('user_overview')}?{search_query}')
-            filtered_users = OverviewMixin.filter_objects(response.wsgi_request)
+            filtered_users = admin_views.OverviewMixin.filter_objects(response.wsgi_request)
             user_emails = [user.email for user in filtered_users]
 
             self.assertEqual(user_emails, expected_result)
@@ -42,7 +44,7 @@ class TestOverviewMixin(TestCase):
     def test_get_extra_context(self):
         response = self.client.get(f'{reverse('user_overview')}?search=@a&tags=admin')
 
-        generated_extra_context = OverviewMixin.get_extra_context(response.wsgi_request)
+        generated_extra_context = admin_views.OverviewMixin.get_extra_context(response.wsgi_request)
         expected_extra_context = {'search_query': '@a', 'tag_query': ['admin'], 'page': 'user_overview'}
 
         self.assertEqual(generated_extra_context, expected_extra_context)
@@ -50,7 +52,7 @@ class TestOverviewMixin(TestCase):
     def test_get_extra_context_empty_queries(self):
         response = self.client.get(reverse('user_overview'))
 
-        generated_extra_context = OverviewMixin.get_extra_context(response.wsgi_request)
+        generated_extra_context = admin_views.OverviewMixin.get_extra_context(response.wsgi_request)
         expected_extra_context = {'search_query': '', 'tag_query': [], 'page': 'user_overview'}
 
         self.assertEqual(generated_extra_context, expected_extra_context)
@@ -60,7 +62,7 @@ class TestAdminMixin(TestCase):
     def test_get_object(self):
         user = User.objects.create_user(username='non_admin', password='password', email='a@a.com')
 
-        self.assertEqual(user, AdminMixin.get_object(None, user.id))
+        self.assertEqual(user, admin_views.AdminMixin.get_object(None, user.id))
 
 
 class TestAdminViews(TestCase):
@@ -114,3 +116,18 @@ class TestAdminViews(TestCase):
         self.assertEqual(response.context['user_id'], str(user.id))
         self.assertEqual(response.context['user_mail'], user.email)
         self.assertTemplateUsed(response, 'partials/delete_user.html')
+
+    def test_create_user_obj_save(self):
+        email = 'a@b.com'
+        assert not User.objects.filter(email=email).exists()
+        # do a dummy request so we can get a request object
+        response = self.client.get(reverse('pdf_overview'))
+
+        form = CreateUserForm(data={'email': email, 'password': 'pw', 'password2': 'pw'})
+        form.is_valid()  # need to call is valid once to get access to cleaned data
+        admin_views.CreateUser.obj_save(form, response.wsgi_request, None)
+
+        generated_user = User.objects.get(email=email)
+        assert generated_user.email == email
+        email_address = EmailAddress.objects.get_primary(generated_user)
+        assert email_address.verified

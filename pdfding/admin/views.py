@@ -1,3 +1,7 @@
+from admin.forms import CreateUserForm
+from allauth.account.adapter import get_adapter
+from allauth.account.models import EmailAddress
+from allauth.account.utils import setup_user_email
 from base import base_views
 from django.conf import settings
 from django.contrib.auth.mixins import UserPassesTestMixin
@@ -116,6 +120,32 @@ class DeleteProfile(BaseAdminRequiredMixin, AdminMixin, base_views.BaseDelete):
             )
 
         return redirect('pdf_overview')  # pragma: no cover
+
+
+class CreateUser(BaseAdminRequiredMixin, base_views.BaseAdd):
+    """View for adjusting the admin rights"""
+
+    template_name = 'admin_create_user.html'
+    obj_name = 'user'
+    form = CreateUserForm
+
+    def get_context_get(self, __, ___):  # pragma: no cover
+        """Get the context needed to be passed to the template containing the form for creating a workspace."""
+
+        context = {'form': self.form(), 'page': 'admin_create_user'}
+
+        return context
+
+    @classmethod
+    def obj_save(cls, form: CreateUserForm, request: HttpRequest, __):
+        email = form.cleaned_data.get("email")
+        adapter = get_adapter()
+        user = adapter.new_user(request)
+        adapter.save_user(request, user, form)
+        setup_user_email(request, user, [EmailAddress(email=email)])
+        email_address = EmailAddress.objects.get_primary(user)
+        email_address.verified = True
+        email_address.save()
 
 
 class AdjustAdminRights(BaseAdminRequiredMixin, View):
