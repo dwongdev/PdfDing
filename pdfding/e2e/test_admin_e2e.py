@@ -1,3 +1,4 @@
+from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import User
 from django.urls import reverse
 from helpers import PdfDingE2ETestCase
@@ -176,6 +177,21 @@ class AdminE2ETestCase(PdfDingE2ETestCase):
             self.page.get_by_role("button", name="Submit").click()
 
             expect(self.page.locator("body")).to_contain_text("b@a.com")
+
+    def test_set_password(self):
+        with sync_playwright() as p:
+            self.open(f"{reverse('user_overview')}?search=1@a.", p)
+            self.page.locator("#open-actions-1").click()
+            self.page.locator("#set-pw-1").click()
+            self.page.get_by_role("textbox", name="Password:").click()
+            self.page.get_by_role("textbox", name="Password:").fill("1")
+            self.page.get_by_role("textbox", name="Password2:").click()
+            self.page.get_by_role("textbox", name="Password2:").fill("1")
+            self.page.get_by_role("button", name="Submit").click()
+
+        changed_user = User.objects.get(email="1@a.com")
+
+        assert check_password("1", changed_user.password)
 
 
 class NoAdminE2ETestCase(PdfDingE2ETestCase):

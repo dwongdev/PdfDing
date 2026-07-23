@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 from allauth.mfa.models import Authenticator
+from allauth.socialaccount.models import SocialAccount
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 from pdf.models.collection_models import Collection
@@ -203,6 +204,15 @@ class TestProfile(TestCase):
 
     def test_mfa_deactivated(self):
         assert not self.user.profile.mfa_activated
+
+    def test_uses_social(self):
+        social_account = SocialAccount.objects.create(user=self.user)
+        self.user.socialaccount_set.set([social_account])
+
+        assert self.user.profile.uses_social
+
+    def test_uses_social_false(self):
+        assert not self.user.profile.uses_social
 
     def test_has_access_to_workspace(self):
         profile = self.user.profile

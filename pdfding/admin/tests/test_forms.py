@@ -24,14 +24,14 @@ class TestAdminForms(TestCase):
 
     @pytest.mark.django_db
     def test_clean_password2(self):
-        form = forms.CreateUserForm(data={'email': 'a@a.com', 'password': 'pw', 'password2': 'pw'})
+        form = forms.PasswordForm(data={'email': 'a@a.com', 'password': 'pw', 'password2': 'pw'})
 
         assert form.is_valid()
         assert 'pw' == form.clean_password2()
 
     @pytest.mark.django_db
     def test_clean_password2_not_matching_pws(self):
-        form = forms.CreateUserForm(data={'email': 'a@a.com', 'password': 'pw', 'password2': 'different'})
+        form = forms.PasswordForm(data={'email': 'a@a.com', 'password': 'pw', 'password2': 'different'})
 
         assert not form.is_valid()
         assert form.errors['password2'] == ['You must type the same password each time.']

@@ -1,9 +1,10 @@
-from admin.forms import CreateUserForm
+from admin.forms import CreateUserForm, PasswordForm
 from allauth.account.adapter import get_adapter
 from allauth.account.models import EmailAddress
 from allauth.account.utils import setup_user_email
 from base import base_views
 from django.conf import settings
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.db.models import QuerySet
@@ -149,7 +150,7 @@ class CreateUser(BaseAdminRequiredMixin, base_views.BaseAdd):
 
 
 class AdjustAdminRights(BaseAdminRequiredMixin, View):
-    """View for adjusting the admin rights"""
+    """View for adjusting the admin rights."""
 
     def post(self, request: HttpRequest, identifier: str):
         """Delete the user"""
@@ -169,6 +170,32 @@ class AdjustAdminRights(BaseAdminRequiredMixin, View):
             return HttpResponseClientRefresh()
 
         return redirect('user_overview')
+
+
+class SetPassword(BaseAdminRequiredMixin, View):
+    """View for resseting the password of a user."""
+
+    def get(self, request: HttpRequest, identifier: str):  # pragma: no cover
+        user = User.objects.get(id=identifier)
+        context = {'form': PasswordForm(), 'user': user, 'page': 'admin_create_user'}
+
+        return render(request, 'admin_set_password.html', context)
+
+    def post(self, request: HttpRequest, identifier: str):
+
+        form = PasswordForm(request.POST)
+        user = User.objects.get(id=identifier)
+        # follow=True is needed for getting the message
+        context = {'form': form, 'user': user, 'page': 'admin_set_password'}
+
+        if form.is_valid():
+            password = form.cleaned_data.get('password')
+            user.password = make_password(password)
+            user.save()
+
+            return redirect('user_overview')
+
+        return render(request, 'admin_set_password.html', context=context)
 
 
 class Information(View):  # pragma: no cover

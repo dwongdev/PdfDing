@@ -262,6 +262,14 @@ class Profile(models.Model):
         else:
             return False
 
+    @property
+    def uses_social(self):
+        """Flag if user is a OIDC account"""
+
+        uses_social = self.user.socialaccount_set.exists()
+
+        return uses_social
+
     def has_access_to_workspace(self, workspace_id: str) -> bool:
         """Check if the profile has access to the specified workspace"""
 

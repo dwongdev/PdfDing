@@ -7,11 +7,17 @@
             [&>a]:py-1 [&>a]:px-2 [&>a]:flex [&>a]:items-center [&>a]:gap-x-2 [&>a]:rounded-sm [&>a]:cursor-pointer
             text-slate-800 bg-slate-200 border-slate-300 [&>a]:hover:bg-slate-300
             dark:text-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:[&>a]:hover:bg-slate-600">
+    {% if not user.profile.uses_social %}
+    <a id="set-pw-{{ loop_id }}" href="{% url 'admin_set_password' user.id %}">
+        {% include 'includes/svg/password.html' %}
+        {% trans 'Set Password' %}
+    </a>
+    {% endif %}
     <a id="adjust-admin-rights-{{ loop_id }}"
        hx-post="{% url 'admin_adjust_rights' user.id %}"
        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
         {% include 'includes/svg/admin.html' %}
-        {% if user.is_superuser and request.user.is_staff %}
+        {% if user.is_superuser and user.is_staff %}
         {% trans 'Remove Admin Rights' %}
         {% else %}
         {% trans 'Add Admin Rights' %}

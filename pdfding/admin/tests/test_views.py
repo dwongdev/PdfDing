@@ -1,6 +1,7 @@
 from admin import views as admin_views
-from admin.forms import CreateUserForm
+from admin.forms import CreateUserForm, PasswordForm
 from allauth.account.models import EmailAddress
+from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -131,3 +132,27 @@ class TestAdminViews(TestCase):
         assert generated_user.email == email
         email_address = EmailAddress.objects.get_primary(generated_user)
         assert email_address.verified
+
+    def test_set_password_post(self):
+        user = User.objects.create_user(username='some_user', password='password', email='b@a.com')
+        response = self.client.post(
+            reverse('admin_set_password', kwargs={'identifier': user.id}),
+            data={
+                'password': 'other_pw',
+                'password2': 'other_pw',
+            },
+        )
+
+        changed_user = User.objects.get(id=user.id)
+        assert check_password('other_pw', changed_user.password)
+        self.assertRedirects(response, reverse('user_overview'))
+
+    def test_set_password_invalid_form(self):
+        user = User.objects.create_user(username='some_user', password='password', email='b@a.com')
+        response = self.client.post(
+            reverse('admin_set_password', kwargs={'identifier': user.id}),
+            data={'password': 'some_pw', 'password2': 'other_pw'},
+        )
+
+        self.assertIsInstance(response.context['form'], PasswordForm)
+        self.assertTemplateUsed(response, 'admin_set_password.html')
