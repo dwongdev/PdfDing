@@ -4,7 +4,8 @@ from django.urls import path
 urlpatterns = [
     path('users', views.Overview.as_view(), name='user_overview'),
     path('create_user', views.CreateUser.as_view(), name='admin_create_user'),
-    path('reset_password/<identifier>', views.SetPassword.as_view(), name='admin_set_password'),
+    path('set_password/<identifier>', views.SetPassword.as_view(), name='admin_set_password'),
+    path('reset_2fa/<identifier>', views.ResetMfa.as_view(), name='admin_reset_mfa'),
     path('info', views.Information.as_view(), name='instance_info'),
     path('query/', views.OverviewQuery.as_view(), name='user_overview_query'),
     path('get_next_overview_page/<int:page>/', views.Overview.as_view(), name='get_next_user_overview_page'),

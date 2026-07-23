@@ -1,3 +1,4 @@
+from allauth.mfa.models import Authenticator
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -192,6 +193,20 @@ class AdminE2ETestCase(PdfDingE2ETestCase):
         changed_user = User.objects.get(email="1@a.com")
 
         assert check_password("1", changed_user.password)
+
+    def test_reset_mfa(self):
+        user = User.objects.get(email="1@a.com")
+        Authenticator.objects.create(user=user, type='totp', data={})
+
+        assert user.profile.mfa_activated
+
+        with sync_playwright() as p:
+            self.open(f"{reverse('user_overview')}?search=1@a.", p)
+            self.page.locator("#open-actions-1").click()
+            self.page.locator("#reset-mfa-1").click()
+
+        changed_user = User.objects.get(email="1@a.com")
+        assert not changed_user.profile.mfa_activated
 
 
 class NoAdminE2ETestCase(PdfDingE2ETestCase):

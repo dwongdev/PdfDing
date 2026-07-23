@@ -153,8 +153,6 @@ class AdjustAdminRights(BaseAdminRequiredMixin, View):
     """View for adjusting the admin rights."""
 
     def post(self, request: HttpRequest, identifier: str):
-        """Delete the user"""
-
         if request.htmx:
             user = User.objects.get(id=identifier)
 
@@ -166,6 +164,22 @@ class AdjustAdminRights(BaseAdminRequiredMixin, View):
                 user.is_superuser = True
 
             user.save()
+
+            return HttpResponseClientRefresh()
+
+        return redirect('user_overview')
+
+
+class ResetMfa(BaseAdminRequiredMixin, View):
+    """View for resseting 2FA of a user."""
+
+    def post(self, request: HttpRequest, identifier: str):
+        if request.htmx:
+            user = User.objects.get(id=identifier)
+
+            if user.profile.mfa_activated:
+                user.authenticator_set.all().delete()
+                user.save()
 
             return HttpResponseClientRefresh()
 
@@ -189,9 +203,10 @@ class SetPassword(BaseAdminRequiredMixin, View):
         context = {'form': form, 'user': user, 'page': 'admin_set_password'}
 
         if form.is_valid():
-            password = form.cleaned_data.get('password')
-            user.password = make_password(password)
-            user.save()
+            if not user.profile.uses_social:
+                password = form.cleaned_data.get('password')
+                user.password = make_password(password)
+                user.save()
 
             return redirect('user_overview')
 

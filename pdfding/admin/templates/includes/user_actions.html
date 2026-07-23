@@ -12,6 +12,14 @@
         {% include 'includes/svg/password.html' %}
         {% trans 'Set Password' %}
     </a>
+      {% if user.profile.mfa_activated %}
+    <a id="reset-mfa-{{ loop_id }}"
+       hx-post="{% url 'admin_reset_mfa' user.id %}"
+       hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+        {% include 'includes/svg/lock_open.html' %}
+        {% trans 'Reset 2FA' %}
+    </a>
+      {% endif %}
     {% endif %}
     <a id="adjust-admin-rights-{{ loop_id }}"
        hx-post="{% url 'admin_adjust_rights' user.id %}"

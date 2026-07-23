@@ -1,6 +1,7 @@
 from admin import views as admin_views
 from admin.forms import CreateUserForm, PasswordForm
 from allauth.account.models import EmailAddress
+from allauth.mfa.models import Authenticator
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import User
 from django.test import Client, TestCase
@@ -96,6 +97,21 @@ class TestAdminViews(TestCase):
 
     def test_adjust_admin_rights_no_htmx(self):
         response = self.client.post(reverse('admin_adjust_rights', kwargs={'identifier': self.user.id}))
+        self.assertRedirects(response, reverse('user_overview'), status_code=302)
+
+    def test_reset_mfa(self):
+        user = User.objects.create_user(username='non_admin', password='12345', email='non_admin@a.com')
+        Authenticator.objects.create(user=user, type='totp', data={})
+
+        assert user.profile.mfa_activated
+
+        headers = {'HTTP_HX-Request': 'true'}
+        self.client.post(reverse('admin_reset_mfa', kwargs={'identifier': user.id}), **headers)
+
+        assert not user.profile.mfa_activated
+
+    def test_reset_mfa_no_htmx(self):
+        response = self.client.post(reverse('admin_reset_mfa', kwargs={'identifier': self.user.id}))
         self.assertRedirects(response, reverse('user_overview'), status_code=302)
 
     def test_get_information(self):
